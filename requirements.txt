@@ -1,0 +1,6 @@
+colorama
+anthropic
+pygments
+python-dotenv
+Pillow
+google-generativeai
