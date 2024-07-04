@@ -16,7 +16,7 @@ def create_folder(path):
 
 def create_file(path, content=""):
     try:
-        with open(path, "w", newline='\n') as f:
+        with open(path, "w", newline='\n', encoding="utf-8") as f:
             content = content.replace(r'\n', '\n')
             f.write(content)
         return f"File created: {path}"
@@ -37,7 +37,7 @@ def generate_and_apply_diff(original_content, new_content, path):
         return "No changes detected."
     
     try:
-        with open(path, 'w', newline='\n') as f:
+        with open(path, 'w', newline='\n', encoding="utf-8") as f:
             content = new_content.replace(r'\n', '\n')
             f.writelines(content)
         return f"Changes applied to {path}:\n" + ''.join(diff)
@@ -51,7 +51,7 @@ def write_to_file(path, content):
                 original_content = f.read()
             result = generate_and_apply_diff(original_content, content, path)
         else:
-            with open(path, 'w', newline='\n') as f:
+            with open(path, 'w', newline='\n', encoding="utf-8") as f:
                 content = content.replace(r'\n', '\n')
                 f.write(content)
             result = f"New file created and content written to: {path}"

@@ -27,7 +27,7 @@ TOOL_COLOR = Fore.YELLOW
 RESULT_COLOR = Fore.GREEN
 
 #Configure the API key directly in the script
-API_KEY = 'AIzaSyCG1XkgaO1V7VuSUvthClXPWxmcG_5eQ6c'
+API_KEY = ''
 genai.configure(api_key=API_KEY)
 # Model name
 MODEL_NAME = "gemini-1.5-flash-latest"
@@ -250,4 +250,7 @@ def main():
             process_and_display_response(response)
 
 if __name__ == "__main__":
-    main()
+    if API_KEY:
+        main()
+    else:
+        print_colored("API key not found. Please set API key in gemini.py!!", TOOL_COLOR)
