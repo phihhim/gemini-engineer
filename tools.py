@@ -3,6 +3,9 @@ import os
 import difflib
 import subprocess
 import platform
+import shutil
+import shlex
+
 def create_folder(path):
     try:
         os.makedirs(path, exist_ok=True)
@@ -71,42 +74,34 @@ def list_files(path="."):
     except Exception as e:
         return f"Error listing files: {str(e)}"
 
-def run_command(command):
-    system = platform.system().lower()
-    try:
-        if system == "windows":
-            # For Windows
-            subprocess.Popen(f'start cmd /K "{command}"', shell=True)
-        
-        elif system == "darwin":
-            # For macOS
-            apple_script = f'''
-            tell application "Terminal"
-                do script "{command}"
-                activate
-            end tell
-            '''
-            subprocess.run(["osascript", "-e", apple_script])
-        
-        elif system == "linux":
-            # For Linux
-            if 'GNOME_TERMINAL_SERVICE' in os.environ:
-                subprocess.Popen(["gnome-terminal", "--", "bash", "-c", f"{command}; exec bash"])
-            elif 'KONSOLE_VERSION' in os.environ:
-                subprocess.Popen(["konsole", "-e", f"bash -c '{command}; exec bash'"])
-            elif 'XTERM_VERSION' in os.environ:
-                subprocess.Popen(["xterm", "-e", f"bash -c '{command}; exec bash'"])
-            else:
-                # Fallback for other Linux environments
-                subprocess.Popen(["x-terminal-emulator", "-e", f"bash -c '{command}; exec bash'"])
-        
-        else:
-            return f"Unsupported operating system: {system}"
-
-        return f"Command '{command}' opened in a new terminal window."
+def is_command_available(command):
+    return shutil.which(command) is not None
     
+def run_command(command):
+    try:
+        cmd = command.split()[0]
+        if not is_command_available(cmd):
+            return f"Error: Command '{cmd}' is not available on this system."
+        
+        if platform.system().lower() == "windows":
+            process = subprocess.Popen(f'cmd.exe /c {command}', stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
+        else:
+            args = shlex.split(command)
+            process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        
+        stdout, stderr = process.communicate()
+        return_code = process.returncode
+        
+        print(f"Command: {command}\n")
+        print( f"Return Code: {return_code}\n")
+        print(f"STDOUT:\n{stdout}\n")
+        print(f"STDERR:\n{stderr}\n")
+        if stderr:
+            return stderr
+        if stdout:
+            return stdout
     except Exception as e:
-        print(f"An error occurred: {e}")    
+        return f"Error executing command: {str(e)}"   
     
 tool_list = [
     Tool(
