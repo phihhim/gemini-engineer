@@ -37,7 +37,7 @@ When you need current information or feel that a search could provide a better a
 
 Always strive to provide the most accurate, helpful, and detailed responses possible. If you're unsure about something, admit it and consider using the search tool to find the most current information.
 
-If you need to call a tool in tool list, you will enter automode.
+{automode_status}
 
 When in automode:
 1. Set clear, achievable goals for yourself based on the user's request
@@ -45,6 +45,7 @@ When in automode:
 3. REMEMBER!! You can Read files, write code, LIST the files, and even SEARCH and make edits, use these tools as necessary to accomplish each goal
 4. ALWAYS READ A FILE BEFORE EDITING IT IF YOU ARE MISSING CONTENT. Provide regular updates on your progress
 5. IMPORTANT RULe!! When you know your goals are completed, DO NOT CONTINUE IN POINTLESS BACK AND FORTH CONVERSATIONS with yourself, if you think we achieved the results established to the original request say "AUTOMODE_COMPLETE" in your response to exit the loop!
+6. ULTRA IMPORTANT! You have access to this {iteration_info} amount of iterations you have left to complete the request, you can use this information to make decisions and to provide updates on your progress knowing the amount of responses you have left to complete the request.
 
 Answer the user's request using relevant tools (if they are available). Before calling a tool, do some analysis within <thinking></thinking> tags. First, think about which of the provided tools is the relevant tool to answer the user's request. Second, go through each of the required parameters of the relevant tool and determine if the user has directly provided or given enough information to infer a value. When deciding if the parameter can be inferred, carefully consider all the context to see if it supports a specific value. If all of the required parameters are present or can be reasonably inferred, close the thinking tag and proceed with the tool call. BUT, if one of the values for a required parameter is missing, DO NOT invoke the function (not even with fillers for the missing params) and instead, ask the user to provide the missing parameters. DO NOT ask for more information on optional parameters if it is not provided.
 
@@ -55,4 +56,4 @@ def update_system_prompt(automode=False, current_iteration=None, max_iterations=
     iteration_info = ""
     if current_iteration is not None and max_iterations is not None:
         iteration_info = f"You are currently on iteration {current_iteration} out of {max_iterations} in automode."
-    return system_prompt #.format(automode_status=automode_status, iteration_info=iteration_info)
+    return system_prompt.format(automode_status=automode_status, iteration_info=iteration_info)
