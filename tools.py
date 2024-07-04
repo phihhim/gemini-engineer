@@ -1,7 +1,8 @@
 from google.generativeai.protos import Tool, FunctionDeclaration, Schema, Type
 import os
 import difflib
-
+import subprocess
+import platform
 def create_folder(path):
     try:
         os.makedirs(path, exist_ok=True)
@@ -12,7 +13,7 @@ def create_folder(path):
 
 def create_file(path, content=""):
     try:
-        with open(path, "w") as f:
+        with open(path, "w", newline='\n') as f:
             content = content.replace(r'\n', '\n')
             f.write(content)
         return f"File created: {path}"
@@ -33,7 +34,7 @@ def generate_and_apply_diff(original_content, new_content, path):
         return "No changes detected."
     
     try:
-        with open(path, 'w') as f:
+        with open(path, 'w', newline='\n') as f:
             content = new_content.replace(r'\n', '\n')
             f.writelines(content)
         return f"Changes applied to {path}:\n" + ''.join(diff)
@@ -47,7 +48,7 @@ def write_to_file(path, content):
                 original_content = f.read()
             result = generate_and_apply_diff(original_content, content, path)
         else:
-            with open(path, 'w') as f:
+            with open(path, 'w', newline='\n') as f:
                 content = content.replace(r'\n', '\n')
                 f.write(content)
             result = f"New file created and content written to: {path}"
@@ -68,7 +69,44 @@ def list_files(path="."):
         files = os.listdir(path)
         return "\n".join(files)
     except Exception as e:
-        return f"Error listing files: {str(e)}"    
+        return f"Error listing files: {str(e)}"
+
+def run_command(command):
+    system = platform.system().lower()
+    try:
+        if system == "windows":
+            # For Windows
+            subprocess.Popen(f'start cmd /K "{command}"', shell=True)
+        
+        elif system == "darwin":
+            # For macOS
+            apple_script = f'''
+            tell application "Terminal"
+                do script "{command}"
+                activate
+            end tell
+            '''
+            subprocess.run(["osascript", "-e", apple_script])
+        
+        elif system == "linux":
+            # For Linux
+            if 'GNOME_TERMINAL_SERVICE' in os.environ:
+                subprocess.Popen(["gnome-terminal", "--", "bash", "-c", f"{command}; exec bash"])
+            elif 'KONSOLE_VERSION' in os.environ:
+                subprocess.Popen(["konsole", "-e", f"bash -c '{command}; exec bash'"])
+            elif 'XTERM_VERSION' in os.environ:
+                subprocess.Popen(["xterm", "-e", f"bash -c '{command}; exec bash'"])
+            else:
+                # Fallback for other Linux environments
+                subprocess.Popen(["x-terminal-emulator", "-e", f"bash -c '{command}; exec bash'"])
+        
+        else:
+            return f"Unsupported operating system: {system}"
+
+        return f"Command '{command}' opened in a new terminal window."
+    
+    except Exception as e:
+        print(f"An error occurred: {e}")    
     
 tool_list = [
     Tool(
@@ -147,6 +185,21 @@ tool_list = [
             )
         ]
     ),
+    Tool(
+        function_declarations=[
+            FunctionDeclaration(
+                name='run_command',
+                description= "Execute a local command and return the result. Use this to run system commands or start processes.",
+                parameters=Schema(
+                    type= Type.OBJECT,
+                    properties={
+                        "command": Schema(type=Type.STRING),
+                        },
+                    required=["command"]
+                ) 
+            )
+        ]
+    ),
 ]
 
 
@@ -160,7 +213,9 @@ def execute_tool(tool_name, tool_input):
     if tool_name == "read_file":
         return read_file(tool_input["path"])
     if tool_name == "list_files":
-        return list_files(tool_input["path"])    
+        return list_files(tool_input["path"])
+    if tool_name == "run_command":
+        return run_command(tool_input["command"])   
     else:
         return f"Unknown tool: {tool_name}"
 
