@@ -4,3 +4,8 @@ pygments
 python-dotenv
 Pillow
 google-generativeai
+rich
+aiohttp
+prompt_toolkit
+python-dotenv
+tavily-python
